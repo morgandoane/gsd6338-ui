@@ -7,6 +7,7 @@ export interface SectionStraight extends SectionBase {
 
 export interface SectionDrive extends SectionBase {
 	type: 'drive';
+	length: number;
 }
 
 export interface SectionTurn extends SectionBase {

@@ -1,18 +1,28 @@
-import { Line } from '@react-three/drei';
 import { Conveyor } from '@system/assemblies/conveyor';
 import getProperties from '@system/assemblies/getProperties';
 import { FC } from 'react';
-import { Euler, Shape, Vector3, ExtrudeGeometry, LineSegments } from 'three';
+import { Euler, Vector3 } from 'three';
+import StraightRender from '../StraightRender';
+import TurnRender from '../TurnRender';
+import { Focus } from '@scenes/Configurator';
+import DriveRender from '../DriveRender';
 
 export interface ConveyorRenderProps {
 	value: Conveyor;
 	onChange: (value: Conveyor) => void;
+	setFocus: (value: Focus | null) => void;
+	focus: Focus | null;
 }
 
-const ConveyorRender: FC<ConveyorRenderProps> = ({ value, onChange }) => {
+const ConveyorRender: FC<ConveyorRenderProps> = ({
+	value,
+	onChange,
+	setFocus,
+	focus,
+}) => {
 	const elements: JSX.Element[] = [];
 	const {
-		section: { width, radius, height },
+		section: { radius },
 	} = getProperties(value.belt);
 
 	const startPosition = new Vector3(0, 0, 0);
@@ -27,17 +37,64 @@ const ConveyorRender: FC<ConveyorRenderProps> = ({ value, onChange }) => {
 			case 'straight': {
 				// Add a straight section
 				elements.push(
-					<group
+					<StraightRender
 						key={key}
+						value={section}
+						onChange={(newValue) => {
+							onChange({
+								...value,
+								sections: value.sections.map((s, i) =>
+									i === index ? newValue : s
+								),
+							});
+						}}
+						focused={focus !== null && index === focus.index}
+						belt={value.belt}
 						position={position.clone()}
 						rotation={rotation.clone()}
-					>
-						<axesHelper args={[10]} />
-						<mesh position={new Vector3(0, 0, section.length / 2)}>
-							<boxGeometry args={[width, height, section.length]} />
-							<meshBasicMaterial color="blue" opacity={0.5} transparent />
-						</mesh>
-					</group>
+						sidewall={value.sidewall}
+						onClick={(e) => {
+							setFocus({
+								section,
+								index,
+								x: e.clientX,
+								y: e.clientY,
+							});
+						}}
+					/>
+				);
+
+				position.add(new Vector3(0, 0, section.length).applyEuler(rotation));
+				break;
+			}
+			case 'drive': {
+				// Add a straight section
+				elements.push(
+					<DriveRender
+						key={key}
+						value={section}
+						onChange={(newValue) => {
+							onChange({
+								...value,
+								sections: value.sections.map((s, i) =>
+									i === index ? newValue : s
+								),
+							});
+						}}
+						focused={focus !== null && index === focus.index}
+						belt={value.belt}
+						position={position.clone()}
+						rotation={rotation.clone()}
+						sidewall={value.sidewall}
+						onClick={(e) => {
+							setFocus({
+								section,
+								index,
+								x: e.clientX,
+								y: e.clientY,
+							});
+						}}
+					/>
 				);
 
 				position.add(new Vector3(0, 0, section.length).applyEuler(rotation));
@@ -46,7 +103,6 @@ const ConveyorRender: FC<ConveyorRenderProps> = ({ value, onChange }) => {
 			case 'turn': {
 				const angleRad = (section.angle * Math.PI) / 180; // Convert degrees to radians
 				const circleRadiusInside = radius.inside;
-				const circleRadiusOutside = circleRadiusInside + width;
 
 				// Clone the current position for rotation
 				const circleCenter = position.clone();
@@ -58,60 +114,33 @@ const ConveyorRender: FC<ConveyorRenderProps> = ({ value, onChange }) => {
 					).applyEuler(rotation)
 				);
 
-				// Push a helper at the circle center for debugging
-				elements.push(
-					<group key={`${key}-circle-center`}>
-						<axesHelper args={[10]} position={circleCenter.clone()} />
-					</group>
-				);
-
-				// Create the turn shape
-				const turnShape = new Shape();
-				turnShape.absarc(
-					0, // X center of the arc
-					0, // Z center of the arc
-					circleRadiusOutside - width / 2, // Outer radius
-					0, // Start angle
-					angleRad, // End angle
-					section.angle < 0 // Clockwise if angle < 0
-				);
-				turnShape.absarc(
-					0, // X center of the arc
-					0, // Z center of the arc
-					circleRadiusInside - width / 2, // Inner radius
-					angleRad, // Start angle
-					0, // End angle
-					section.angle >= 0 // Clockwise if angle >= 0
-				);
-				turnShape.closePath();
-
-				// Extrude settings
-				const extrudeSettings = {
-					steps: 1,
-					depth: height,
-					bevelEnabled: false,
-				};
-
-				// Create extruded geometry
-				const turnGeometry = new ExtrudeGeometry(turnShape, extrudeSettings);
-
-				if (section.angle > 0) {
-					turnGeometry.rotateX(angleRad > 0 ? Math.PI / 2 : -Math.PI / 2);
-					turnGeometry.rotateZ(Math.PI);
-				} else {
-					turnGeometry.rotateX(angleRad > 0 ? Math.PI / 2 : -Math.PI / 2);
-				}
-
 				// Add the extruded geometry as a mesh
 				elements.push(
-					<mesh
+					<TurnRender
 						key={key}
-						geometry={turnGeometry}
-						position={circleCenter.clone().add(new Vector3(0, -height / 2, 0))}
-						rotation={[0, rotation.y, 0]}
-					>
-						<meshBasicMaterial color="green" opacity={0.5} transparent />
-					</mesh>
+						value={section}
+						onChange={(newValue) => {
+							onChange({
+								...value,
+								sections: value.sections.map((s, i) =>
+									i === index ? newValue : s
+								),
+							});
+						}}
+						belt={value.belt}
+						position={position.clone()}
+						rotation={rotation.clone()}
+						sidewall={value.sidewall}
+						focused={focus !== null && index === focus.index}
+						onClick={(e) => {
+							setFocus({
+								section,
+								index,
+								x: e.clientX,
+								y: e.clientY,
+							});
+						}}
+					/>
 				);
 
 				// Rotate the current position around the circle center
@@ -127,7 +156,13 @@ const ConveyorRender: FC<ConveyorRenderProps> = ({ value, onChange }) => {
 		}
 	});
 
-	return <group>{elements}</group>;
+	return (
+		<>
+			<group position={startPosition.clone().add(new Vector3(0, 32, 0))}>
+				{elements}
+			</group>
+		</>
+	);
 };
 
 export default ConveyorRender;
