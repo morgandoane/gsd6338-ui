@@ -1,9 +1,9 @@
-import { FC, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import Map from './Map';
 import View from './View';
-import { Conveyor } from '@system/assemblies/conveyor';
-import { Section } from '@system/assemblies/section';
-import Popover from './View/components/Popover';
+import { Conveyor } from '@system/conveyor';
+import { Section } from '@system/section';
+import Popover from './Popover';
 
 export type Focus = {
 	section: Section;
@@ -12,24 +12,33 @@ export type Focus = {
 	y: number;
 };
 
+const defaultConveryor: Conveyor = {
+	sections: [],
+	belt: {
+		thickness: 0.5,
+		width: 48,
+		radius: 48,
+	},
+	padding: 0.5,
+	height: 10,
+};
+
 const Configurator: FC = () => {
 	const [focus, setFocus] = useState<Focus | null>(null);
 
-	const [conveyor, setConveyor] = useState<Conveyor>({
-		sections: [],
-		belt: {
-			thickness: 0.5,
-			width: 48,
-			turnRadiusInside: 50,
-			name: 'PR620',
-			material: {
-				name: 'Acetal',
-			},
-		},
-		sidewall: {
-			thickness: 0.1875,
-		},
+	const [conveyor, setConveyor] = useState<Conveyor>(() => {
+		// const fromStorage = localStorage.getItem('conveyor');
+		// if (fromStorage) {
+		// 	return JSON.parse(fromStorage);
+		// } else {
+		// 	return defaultConveryor;
+		// }
+		return defaultConveryor;
 	});
+
+	useEffect(() => {
+		localStorage.setItem('conveyor', JSON.stringify(conveyor));
+	}, [conveyor]);
 
 	return (
 		<div className="h-screen flex items-stretch">
@@ -42,21 +51,25 @@ const Configurator: FC = () => {
 			/>
 			<Popover
 				value={
-					focus ? { ...focus, section: conveyor.sections[focus.index] } : null
+					focus
+						? {
+								...focus,
+								section: conveyor.sections[focus.index],
+						  }
+						: null
 				}
-				onChange={(value) => {
-					if (value) {
+				onChange={(val) => {
+					if (!val) {
+						setFocus(null);
+					} else {
 						setConveyor({
 							...conveyor,
-							sections: conveyor.sections.map((section, index) =>
-								index === focus?.index ? value : section
+							sections: conveyor.sections.map((section, i) =>
+								i === focus?.index ? val.section : section
 							),
 						});
-					} else {
-						setFocus(null);
 					}
 				}}
-				onClose={() => setFocus(null)}
 			/>
 		</div>
 	);

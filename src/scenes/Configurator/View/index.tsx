@@ -1,9 +1,12 @@
-import { FC, useEffect } from 'react';
+import { FC } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { Conveyor } from '@system/assemblies/conveyor';
-import ConveyorRender from './components/ConveyorRender';
 import { Focus } from '..';
+import { Conveyor } from '@system/conveyor';
+import Hotkeys from './components/Hotkeys';
+import { Euler, Vector3 } from 'three';
+import sectionDisplacement from '@system/section.displacement';
+import SectionRender from './components/SectionRender';
 
 export interface ViewProps {
 	value: Conveyor;
@@ -13,58 +16,52 @@ export interface ViewProps {
 }
 
 const View: FC<ViewProps> = ({ value, focus, onChange, setFocus }) => {
-	useEffect(() => {
-		const listener = (event: KeyboardEvent) => {
-			const handlers: Record<string, () => void> = {
-				ArrowUp: () => {
-					onChange({
-						...value,
-						sections: [...value.sections, { type: 'straight', length: 120 }],
-					});
-				},
-				ArrowDown: () => {
-					onChange({
-						...value,
-						sections: value.sections.slice(0, -1),
-					});
-				},
-				ArrowLeft: () => {
-					onChange({
-						...value,
-						sections: [...value.sections, { type: 'turn', angle: 45 }],
-					});
-				},
-				ArrowRight: () => {
-					onChange({
-						...value,
-						sections: [...value.sections, { type: 'turn', angle: -45 }],
-					});
-				},
-				d: () => {
-					onChange({
-						...value,
-						sections: [...value.sections, { type: 'drive', length: 120 }],
-					});
-				},
-				Delete: () => {
-					onChange({
-						...value,
-						sections: [],
-					});
-				},
-			};
+	const startPosition = new Vector3(0, 36, 0);
+	const startRotation = new Euler(0, 0, 0);
 
-			if (handlers[event.key]) {
-				handlers[event.key]();
-			}
-		};
+	const boundsMin = new Vector3(-100, 0, -100);
+	const boundsMax = new Vector3(100, 0, 100);
 
-		window.addEventListener('keydown', listener);
+	const elements: JSX.Element[] = [
+		<axesHelper key="axes" args={[100]} position={[0, 0, 0]} />,
+	];
 
-		return () => {
-			window.removeEventListener('keydown', listener);
-		};
-	}, [onChange, value]);
+	value.sections.forEach((section, index) => {
+		const position = startPosition.clone();
+		const rotation = startRotation.clone();
+
+		const { endPosition, endRotation } = sectionDisplacement(
+			section,
+			value,
+			position,
+			rotation
+		);
+
+		startPosition.copy(endPosition);
+		startRotation.copy(endRotation);
+
+		// adjust bounds, if needed
+		if (endPosition.x < boundsMin.x) boundsMin.x = endPosition.x - 100;
+		if (endPosition.z < boundsMin.z) boundsMin.z = endPosition.z - 100;
+		if (endPosition.x > boundsMax.x) boundsMax.x = endPosition.x + 100;
+		if (endPosition.z > boundsMax.z) boundsMax.z = endPosition.z + 100;
+
+		elements.push(
+			<SectionRender
+				key={`section-${index}`}
+				position={position}
+				rotation={rotation}
+				section={section}
+				belt={value.belt}
+				focused={focus !== null && index === focus.index}
+				onClick={(e) =>
+					setFocus({ index, section, x: e.clientX, y: e.clientY })
+				}
+				padding={value.padding}
+				height={value.height}
+			/>
+		);
+	});
 
 	return (
 		<>
@@ -72,7 +69,7 @@ const View: FC<ViewProps> = ({ value, focus, onChange, setFocus }) => {
 				orthographic
 				shadows
 				camera={{
-					zoom: 4, // Adjust zoom level for desired scale
+					zoom: 0.8, // Adjust zoom level for desired scale
 					position: [100, 100, 100], // Camera position
 					near: -1000, // Near clipping plane
 					far: 1000, // Far clipping plane
@@ -87,22 +84,25 @@ const View: FC<ViewProps> = ({ value, focus, onChange, setFocus }) => {
 					shadow-mapSize-width={1024}
 					shadow-mapSize-height={1024}
 				/>
+				{/* ground plane based on bounds */}
 				<mesh
-					rotation={[-Math.PI / 2, 0, 0]} // Rotate to make the plane flat
-					position={[0, 0, 0]} // Position it below the objects
-					receiveShadow // Enable shadow reception
+					receiveShadow
+					rotation-x={-Math.PI / 2}
+					position={[
+						(boundsMin.x + boundsMax.x) / 2,
+						0,
+						(boundsMin.z + boundsMax.z) / 2,
+					]}
 				>
-					<planeGeometry args={[1000, 1000]} /> {/* Adjust size as needed */}
-					<meshStandardMaterial color="#888" roughness={1} />
+					<planeGeometry
+						args={[boundsMax.x - boundsMin.x, boundsMax.z - boundsMin.z]}
+					/>
+					<meshStandardMaterial color="grey" />
 				</mesh>
+				<group>{elements}</group>
 				<OrbitControls />
-				<ConveyorRender
-					value={value}
-					onChange={onChange}
-					setFocus={setFocus}
-					focus={focus}
-				/>
 			</Canvas>
+			<Hotkeys value={value} onChange={onChange} />
 		</>
 	);
 };
