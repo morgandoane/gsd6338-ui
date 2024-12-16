@@ -9,20 +9,7 @@ import { Routes, Route } from 'react-router-dom';
 const App: FC = () => {
 	return (
 		<Routes>
-			<Route index element={<Landing />} />
-			<Route path="account" element={<Account />} />
-			<Route path="dashboard" element={<Dashboard />} />
-			<Route path="dashboard/:id" element={<Configurator />} />
-			<Route
-				path="*"
-				element={
-					<Problem
-						title="404"
-						description="Page not found"
-						error={new Error('Page not found')}
-					/>
-				}
-			/>
+			<Route index element={<Configurator />} />
 		</Routes>
 	);
 };
