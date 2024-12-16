@@ -1,7 +1,8 @@
 import { FC } from 'react';
 import { SectionRenderProps } from '../..';
 import { SectionStraight } from '@system/section';
-import { BoxGeometry } from 'three';
+import { BoxGeometry, Euler, Vector3 } from 'three';
+import CrossBeam from '../CrossBeam';
 
 export interface StraightProps
 	extends Omit<SectionRenderProps, 'position' | 'rotation'> {
@@ -50,6 +51,16 @@ const Straight: FC<StraightProps> = ({
 
 	const legCount = Math.max(Math.ceil(section.length / legSpacingMin), minLegs);
 	const legSpacing = section.length / (legCount - 1);
+
+	const crossdBeamSpacingMin = 18;
+	const crossBeamOffset = 4.5;
+	const crossBeamCount = Math.max(
+		Math.ceil((section.length - crossBeamOffset * 2) / crossdBeamSpacingMin),
+		2
+	);
+
+	const crossBeamSpacing =
+		(section.length - crossBeamOffset * 2) / (crossBeamCount - 1);
 
 	return (
 		<group onClick={onClick}>
@@ -104,7 +115,7 @@ const Straight: FC<StraightProps> = ({
 				</mesh>
 			))}
 			{/* Top Belt */}
-			<mesh position={[0, height / 2 - belt.thickness, section.length / 2]}>
+			<mesh position={[0, height / 2 - belt.thickness / 2, section.length / 2]}>
 				<boxGeometry args={[belt.width, belt.thickness, section.length]} />
 				<meshStandardMaterial
 					color={focused ? 'green' : 'blue'}
@@ -154,6 +165,37 @@ const Straight: FC<StraightProps> = ({
 					<boxGeometry args={[1.5, 38, 3]} />
 					<meshStandardMaterial color="grey" metalness={0.5} roughness={0.5} />
 				</mesh>
+			))}
+			{/* Top Cross Beams */}
+			{Array.from({ length: crossBeamCount }).map((_, index) => (
+				<CrossBeam
+					key={`top-cb-t-${index}`}
+					position={
+						new Vector3(
+							0,
+							height / 2 - belt.thickness - 1.5,
+
+							crossBeamOffset + crossBeamSpacing * index
+						)
+					}
+					rotation={new Euler(0, 0, 0)}
+					width={belt.width + 2 * padding}
+				/>
+			))}
+			{/* Bottom Cross Beams */}
+			{Array.from({ length: crossBeamCount }).map((_, index) => (
+				<CrossBeam
+					key={`top-cb-b-${index}`}
+					position={
+						new Vector3(
+							0,
+							-height / 2 + 3.5 - belt.thickness - 1.5,
+							crossBeamOffset + crossBeamSpacing * index
+						)
+					}
+					rotation={new Euler(0, 0, 0)}
+					width={belt.width + 2 * padding}
+				/>
 			))}
 		</group>
 	);

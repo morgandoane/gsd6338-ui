@@ -88,13 +88,13 @@ const Hotkeys: FC<HotkeysProps> = ({ value, onChange }) => {
 				i: () => {
 					onChange({
 						...value,
-						sections: [...value.sections, { type: 'incline', angle: -45 }],
+						sections: [...value.sections, { type: 'incline', angle: 45 }],
 					});
 				},
 				I: () => {
 					onChange({
 						...value,
-						sections: [...value.sections, { type: 'incline', angle: -45 }],
+						sections: [...value.sections, { type: 'incline', angle: 45 }],
 					});
 				},
 				Delete: () => {

@@ -3,7 +3,9 @@ import { SectionRenderProps } from '../..';
 import { SectionTurn } from '@system/section';
 import Arc from '../Arc';
 import Pattern from '../Pattern';
-import { Vector3 } from 'three';
+import { Euler, Vector3 } from 'three';
+import ArrayPolar from '../Pattern/Polar';
+import { i } from 'framer-motion/client';
 
 export interface TurnProps
 	extends Omit<SectionRenderProps, 'position' | 'rotation'> {
@@ -42,18 +44,25 @@ const Turn: FC<TurnProps> = ({
 		bottom: (belt.width - wearStripOffest * 2) / (wearStripCount.bottom - 1),
 	};
 
-	const legOffset = (10 / 180) * Math.PI;
-	const legSpacingMin = 40;
+	const isLeft = section.angle > 0;
+	const legOffsetDeg = 5;
+	const legOffsetRad = (legOffsetDeg * Math.PI) / 180;
 
-	const outerArcRadius =
-		belt.radius +
-		belt.width / 2 +
-		padding +
-		(0.1875 / 2) * (section.angle / 180);
+	const angleRad = (section.angle * Math.PI) / 180;
 
-	const outerArcLength = Math.PI * outerArcRadius * (section.angle / 180);
+	const legCoverageTarget = 40;
 
-	const legCountOuter = Math.max(Math.ceil(outerArcLength / legSpacingMin), 1);
+	const outsideArcLength = (belt.radius + belt.width / 2 + padding) * angleRad;
+	const insideArcLength = (belt.radius - belt.width / 2 - padding) * angleRad;
+
+	const legCountOutside = Math.max(
+		Math.ceil(Math.abs(outsideArcLength) / legCoverageTarget),
+		1
+	);
+	const legCountInside = Math.max(
+		Math.ceil(Math.abs(insideArcLength) / legCoverageTarget),
+		1
+	);
 
 	return (
 		<group onClick={onClick}>
@@ -183,35 +192,59 @@ const Turn: FC<TurnProps> = ({
 					/>
 				</group>
 			))}
-
+			{/* Outside legs */}
 			<group
-				position={
-					new Vector3(section.angle < 0 ? -belt.radius : belt.radius, -16, 0)
-				}
+				position={new Vector3(isLeft ? belt.radius : -belt.radius, 0, 0)}
+				rotation={new Euler(0, isLeft ? Math.PI + angleRad : angleRad, 0)}
 			>
-				<Pattern.Polar
-					radius={belt.radius + belt.width / 2 + padding + 0.1875 / 2}
-					count={legCountOuter}
-					endAngle={
-						section.angle > 0 ? -Math.PI - Math.PI / 180 - legOffset : legOffset
-					}
-					startAngle={
-						section.angle > 0
-							? -Math.PI - (section.angle * Math.PI) / 180 + legOffset
-							: -(section.angle * Math.PI) / 180 - legOffset
-					}
+				<ArrayPolar
+					radius={belt.radius + belt.width / 2 + padding + 0.1875 / 2 + 0.75}
+					count={legCountOutside}
+					startAngle={isLeft ? legOffsetRad : -legOffsetRad}
+					endAngle={isLeft ? angleRad - legOffsetRad : angleRad + legOffsetRad}
 				>
 					{(index, position, rotation) => (
-						<mesh position={position} rotation={rotation} key={`leg-${index}`}>
-							<boxGeometry args={[1.5, 40, 3]} />
+						<mesh
+							key={`outside-leg-${index}`}
+							position={position.clone().add(new Vector3(0, -17, 0))}
+							rotation={rotation}
+						>
+							<boxGeometry args={[1.5, 38, 3]} />
 							<meshStandardMaterial
-								color="rgb(80,80,80)"
+								color="grey"
 								metalness={0.5}
 								roughness={0.5}
 							/>
 						</mesh>
 					)}
-				</Pattern.Polar>
+				</ArrayPolar>
+			</group>
+			{/* Inside legs */}
+			<group
+				position={new Vector3(isLeft ? belt.radius : -belt.radius, 0, 0)}
+				rotation={new Euler(0, isLeft ? Math.PI + angleRad : angleRad, 0)}
+			>
+				<ArrayPolar
+					radius={belt.radius - belt.width / 2 - padding - 0.1875 / 2 - 0.75}
+					count={legCountInside}
+					startAngle={isLeft ? legOffsetRad : -legOffsetRad}
+					endAngle={isLeft ? angleRad - legOffsetRad : angleRad + legOffsetRad}
+				>
+					{(index, position, rotation) => (
+						<mesh
+							key={`inside-leg-${index}`}
+							position={position.clone().add(new Vector3(0, -17, 0))}
+							rotation={rotation}
+						>
+							<boxGeometry args={[1.5, 38, 3]} />
+							<meshStandardMaterial
+								color="grey"
+								metalness={0.5}
+								roughness={0.5}
+							/>
+						</mesh>
+					)}
+				</ArrayPolar>
 			</group>
 		</group>
 	);

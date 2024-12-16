@@ -7,6 +7,7 @@ import Hotkeys from './components/Hotkeys';
 import { Euler, Vector3 } from 'three';
 import sectionDisplacement from '@system/section.displacement';
 import SectionRender from './components/SectionRender';
+import End from './components/End';
 
 export interface ViewProps {
 	value: Conveyor;
@@ -16,8 +17,11 @@ export interface ViewProps {
 }
 
 const View: FC<ViewProps> = ({ value, focus, onChange, setFocus }) => {
-	const startPosition = new Vector3(0, 36, 0);
-	const startRotation = new Euler(0, 0, 0);
+	const originPosition = new Vector3(0, 36, 0);
+	const originRotation = new Euler(0, 0, 0);
+
+	const startPosition = originPosition.clone();
+	const startRotation = originRotation.clone();
 
 	const boundsMin = new Vector3(-100, 0, -100);
 	const boundsMax = new Vector3(100, 0, 100);
@@ -41,10 +45,10 @@ const View: FC<ViewProps> = ({ value, focus, onChange, setFocus }) => {
 		startRotation.copy(endRotation);
 
 		// adjust bounds, if needed
-		if (endPosition.x < boundsMin.x) boundsMin.x = endPosition.x - 100;
-		if (endPosition.z < boundsMin.z) boundsMin.z = endPosition.z - 100;
-		if (endPosition.x > boundsMax.x) boundsMax.x = endPosition.x + 100;
-		if (endPosition.z > boundsMax.z) boundsMax.z = endPosition.z + 100;
+		if (endPosition.x < boundsMin.x + 100) boundsMin.x = endPosition.x - 100;
+		if (endPosition.z < boundsMin.z + 100) boundsMin.z = endPosition.z - 100;
+		if (endPosition.x > boundsMax.x - 100) boundsMax.x = endPosition.x + 100;
+		if (endPosition.z > boundsMax.z - 100) boundsMax.z = endPosition.z + 100;
 
 		elements.push(
 			<SectionRender
@@ -99,7 +103,23 @@ const View: FC<ViewProps> = ({ value, focus, onChange, setFocus }) => {
 					/>
 					<meshStandardMaterial color="grey" />
 				</mesh>
-				<group>{elements}</group>
+				<group>
+					<End
+						position={originPosition}
+						rotation={originRotation.clone().set(0, Math.PI, 0)}
+						belt={value.belt}
+						padding={value.padding}
+						height={value.height}
+					/>
+					{elements}
+					<End
+						position={startPosition}
+						rotation={startRotation}
+						belt={value.belt}
+						padding={value.padding}
+						height={value.height}
+					/>
+				</group>
 				<OrbitControls />
 			</Canvas>
 			<Hotkeys value={value} onChange={onChange} />

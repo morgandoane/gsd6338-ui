@@ -40,7 +40,7 @@ const sectionDisplacement = (
 			return { endPosition, endRotation };
 		}
 		case 'drive': {
-			const driveLength = conveyor.belt.width * 4;
+			const driveLength = conveyor.belt.width * 3;
 			endPosition.add(new Vector3(0, 0, driveLength).applyEuler(lastRotation));
 			return { endPosition, endRotation };
 		}

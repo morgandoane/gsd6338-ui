@@ -35,7 +35,7 @@ const ArrayPolar: React.FC<ArrayPolarProps> = ({
 		return children(index, position, rotation);
 	});
 
-	return <>{items}</>;
+	return <group>{items}</group>;
 };
 
 export default ArrayPolar;
