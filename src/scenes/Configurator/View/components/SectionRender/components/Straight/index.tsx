@@ -66,6 +66,7 @@ const Straight: FC<StraightProps> = ({
 		<group onClick={onClick}>
 			{/* Sidewall Right */}
 			<mesh
+				castShadow
 				position={[
 					-belt.width / 2 - padding - 0.1875 / 2,
 					0,
@@ -73,10 +74,11 @@ const Straight: FC<StraightProps> = ({
 				]}
 			>
 				<boxGeometry args={[0.1875, height, section.length]} />
-				<meshStandardMaterial color="grey" metalness={0.5} roughness={0.5} />
+				<meshStandardMaterial color="grey" metalness={0.8} roughness={1} />
 			</mesh>
 			{/* Sidewall Left */}
 			<mesh
+				castShadow
 				position={[
 					belt.width / 2 + padding + 0.1875 / 2,
 					0,
@@ -84,11 +86,12 @@ const Straight: FC<StraightProps> = ({
 				]}
 			>
 				<boxGeometry args={[0.1875, height, section.length]} />
-				<meshStandardMaterial color="grey" metalness={0.5} roughness={0.5} />
+				<meshStandardMaterial color="grey" metalness={0.8} roughness={1} />
 			</mesh>
 			{/* Top Wear Strips */}
 			{Array.from({ length: wearStripCount.top }).map((_, index) => (
 				<mesh
+					castShadow
 					key={index}
 					position={[
 						wearStripOffest + -belt.width / 2 + wearStripSpacing.top * index,
@@ -103,6 +106,7 @@ const Straight: FC<StraightProps> = ({
 			{/* Bottom Wear Strips */}
 			{Array.from({ length: wearStripCount.bottom }).map((_, index) => (
 				<mesh
+					castShadow
 					key={index}
 					position={[
 						wearStripOffest + -belt.width / 2 + wearStripSpacing.bottom * index,
@@ -115,7 +119,10 @@ const Straight: FC<StraightProps> = ({
 				</mesh>
 			))}
 			{/* Top Belt */}
-			<mesh position={[0, height / 2 - belt.thickness / 2, section.length / 2]}>
+			<mesh
+				castShadow
+				position={[0, height / 2 - belt.thickness / 2, section.length / 2]}
+			>
 				<boxGeometry args={[belt.width, belt.thickness, section.length]} />
 				<meshStandardMaterial
 					color={focused ? 'green' : 'blue'}
@@ -125,6 +132,7 @@ const Straight: FC<StraightProps> = ({
 			</mesh>
 			{/* Bottom Belt */}
 			<mesh
+				castShadow
 				position={[
 					0,
 					-height / 2 + 3.5 - belt.thickness / 2,

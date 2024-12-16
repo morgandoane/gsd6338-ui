@@ -104,8 +104,8 @@ const Turn: FC<TurnProps> = ({
 					width={0.1875}
 					height={height}
 					angle={section.angle}
-					metalness={0.5}
-					roughness={0.5}
+					metalness={0.8}
+					roughness={1}
 				/>
 			</group>
 			{/* Left Sidewall */}
@@ -122,8 +122,8 @@ const Turn: FC<TurnProps> = ({
 					width={0.1875}
 					height={height}
 					angle={section.angle}
-					metalness={0.5}
-					roughness={0.5}
+					metalness={0.8}
+					roughness={1}
 				/>
 			</group>
 			{/* Top Wear Strips */}

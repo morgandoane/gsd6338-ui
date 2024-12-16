@@ -17,11 +17,11 @@ const Plate: FC<PlateProps> = ({ position, height }) => {
 		<group position={position}>
 			<mesh>
 				<primitive object={cylinder} />
-				<meshStandardMaterial color="grey" metalness={0.5} roughness={0.5} />
+				<meshStandardMaterial color="grey" metalness={0.8} roughness={1} />
 			</mesh>
 			<mesh>
 				<primitive object={box} />
-				<meshStandardMaterial color="grey" metalness={0.5} roughness={0.5} />
+				<meshStandardMaterial color="grey" metalness={0.8} roughness={1} />
 			</mesh>
 		</group>
 	);

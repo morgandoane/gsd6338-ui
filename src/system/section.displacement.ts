@@ -49,7 +49,7 @@ const sectionDisplacement = (
 			endPosition.add(
 				new Vector3(0, 0, segmentLength).applyEuler(lastRotation)
 			);
-			endRotation.x += (Math.PI / 180) * section.angle;
+			endRotation.x -= (Math.PI / 180) * section.angle;
 			endPosition.add(new Vector3(0, 0, segmentLength).applyEuler(endRotation));
 			return { endPosition, endRotation };
 		}

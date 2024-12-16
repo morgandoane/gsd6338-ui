@@ -8,6 +8,12 @@ import { Euler, Vector3 } from 'three';
 import sectionDisplacement from '@system/section.displacement';
 import SectionRender from './components/SectionRender';
 import End from './components/End';
+import {
+	EffectComposer,
+	Bloom,
+	DepthOfField,
+	SSAO,
+} from '@react-three/postprocessing';
 
 export interface ViewProps {
 	value: Conveyor;
@@ -73,20 +79,19 @@ const View: FC<ViewProps> = ({ value, focus, onChange, setFocus }) => {
 				orthographic
 				shadows
 				camera={{
-					zoom: 0.8, // Adjust zoom level for desired scale
+					zoom: 3, // Adjust zoom level for desired scale
 					position: [100, 100, 100], // Camera position
 					near: -1000, // Near clipping plane
 					far: 1000, // Far clipping plane
 				}}
 				onPointerMissed={() => setFocus(null)}
 			>
-				<ambientLight intensity={0.5} />
+				<ambientLight intensity={1} />
 				<directionalLight
-					position={[500, 1000, 500]}
-					intensity={5}
+					position={[100, 500, 300]}
+					rotation={[Math.PI / 3, 2, 2]}
+					intensity={8}
 					castShadow
-					shadow-mapSize-width={1024}
-					shadow-mapSize-height={1024}
 				/>
 				{/* ground plane based on bounds */}
 				<mesh
@@ -101,7 +106,12 @@ const View: FC<ViewProps> = ({ value, focus, onChange, setFocus }) => {
 					<planeGeometry
 						args={[boundsMax.x - boundsMin.x, boundsMax.z - boundsMin.z]}
 					/>
-					<meshStandardMaterial color="grey" />
+					<meshPhysicalMaterial
+						color="rgb(150,150,150)"
+						roughness={0}
+						reflectivity={0.5}
+						metalness={0.1}
+					/>
 				</mesh>
 				<group>
 					<End
@@ -121,6 +131,19 @@ const View: FC<ViewProps> = ({ value, focus, onChange, setFocus }) => {
 					/>
 				</group>
 				<OrbitControls />
+				<EffectComposer>
+					<SSAO
+						samples={32}
+						radius={0.5}
+						intensity={2}
+						worldDistanceThreshold={10}
+						worldDistanceFalloff={1}
+						worldProximityThreshold={1}
+						worldProximityFalloff={0.1}
+					/>
+					<Bloom intensity={0.05} luminanceThreshold={0.1} />
+					<DepthOfField focusDistance={0.001} focalLength={6} bokehScale={2} />
+				</EffectComposer>
 			</Canvas>
 			<Hotkeys value={value} onChange={onChange} />
 		</>

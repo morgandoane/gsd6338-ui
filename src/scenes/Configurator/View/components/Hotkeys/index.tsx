@@ -1,5 +1,6 @@
 import { Kbd, KbdKey } from '@nextui-org/react';
 import { Conveyor } from '@system/conveyor';
+import { SectionTurn } from '@system/section';
 import { FC, useEffect } from 'react';
 
 export interface HotkeysProps {
@@ -44,16 +45,42 @@ const Hotkeys: FC<HotkeysProps> = ({ value, onChange }) => {
 					});
 				},
 				ArrowLeft: () => {
-					onChange({
-						...value,
-						sections: [...value.sections, { type: 'turn', angle: 45 }],
-					});
+					if (value.sections[value.sections.length - 1].type === 'turn') {
+						const currentTurn = value.sections[
+							value.sections.length - 1
+						] as SectionTurn;
+						onChange({
+							...value,
+							sections: [
+								...value.sections.slice(0, -1),
+								{ type: 'turn', angle: currentTurn.angle + 45 },
+							],
+						});
+					} else {
+						onChange({
+							...value,
+							sections: [...value.sections, { type: 'turn', angle: 45 }],
+						});
+					}
 				},
 				ArrowRight: () => {
-					onChange({
-						...value,
-						sections: [...value.sections, { type: 'turn', angle: -45 }],
-					});
+					if (value.sections[value.sections.length - 1].type === 'turn') {
+						const currentTurn = value.sections[
+							value.sections.length - 1
+						] as SectionTurn;
+						onChange({
+							...value,
+							sections: [
+								...value.sections.slice(0, -1),
+								{ type: 'turn', angle: currentTurn.angle - 45 },
+							],
+						});
+					} else {
+						onChange({
+							...value,
+							sections: [...value.sections, { type: 'turn', angle: -45 }],
+						});
+					}
 				},
 				d: () => {
 					onChange({
@@ -124,8 +151,8 @@ const Hotkeys: FC<HotkeysProps> = ({ value, onChange }) => {
 			<KeyRender kbdKey="left">Add left turn</KeyRender>
 			<KeyRender kbdKey="right">Add right turn</KeyRender>
 			<KeyRender character="d">Add drive section</KeyRender>
-			<KeyRender character="c">Add corkscrew section</KeyRender>
-			<KeyRender character="i">Add incline section</KeyRender>
+			{/* <KeyRender character="c">Add corkscrew section</KeyRender> */}
+			{/* <KeyRender character="i">Add incline section</KeyRender> */}
 			<KeyRender kbdKey="delete">Clear conveyor</KeyRender>
 		</div>
 	);
