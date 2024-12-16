@@ -1,4 +1,4 @@
-import { Slider } from '@nextui-org/react';
+import { Button, Slider } from '@nextui-org/react';
 import { Conveyor } from '@system/conveyor';
 import { FC } from 'react';
 import logo from './logo.svg';

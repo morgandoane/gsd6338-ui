@@ -1,10 +1,10 @@
-import { FC } from 'react';
+import { FC, forwardRef, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { Focus } from '..';
 import { Conveyor } from '@system/conveyor';
 import Hotkeys from './components/Hotkeys';
-import { Euler, Vector3 } from 'three';
+import { Euler, Scene, Vector3 } from 'three';
 import sectionDisplacement from '@system/section.displacement';
 import SectionRender from './components/SectionRender';
 import End from './components/End';
@@ -14,6 +14,7 @@ import {
 	DepthOfField,
 	SSAO,
 } from '@react-three/postprocessing';
+import { OBJExporter } from 'three/examples/jsm/Addons.js';
 
 export interface ViewProps {
 	value: Conveyor;
@@ -23,6 +24,8 @@ export interface ViewProps {
 }
 
 const View: FC<ViewProps> = ({ value, focus, onChange, setFocus }) => {
+	const sceneRef = useRef<Scene | null>(null);
+
 	const originPosition = new Vector3(0, 36, 0);
 	const originRotation = new Euler(0, 0, 0);
 
@@ -73,6 +76,18 @@ const View: FC<ViewProps> = ({ value, focus, onChange, setFocus }) => {
 		);
 	});
 
+	const exportOBJ = () => {
+		if (sceneRef.current) {
+			const exporter = new OBJExporter();
+			const result = exporter.parse(sceneRef.current);
+			const blob = new Blob([result], { type: 'text/plain' });
+			const link = document.createElement('a');
+			link.href = URL.createObjectURL(blob);
+			link.download = 'scene.obj';
+			link.click();
+		}
+	};
+
 	return (
 		<>
 			<Canvas
@@ -113,7 +128,7 @@ const View: FC<ViewProps> = ({ value, focus, onChange, setFocus }) => {
 						metalness={0.1}
 					/>
 				</mesh>
-				<group>
+				<scene ref={sceneRef}>
 					<End
 						position={originPosition}
 						rotation={originRotation.clone().set(0, Math.PI, 0)}
@@ -129,7 +144,7 @@ const View: FC<ViewProps> = ({ value, focus, onChange, setFocus }) => {
 						padding={value.padding}
 						height={value.height}
 					/>
-				</group>
+				</scene>
 				<OrbitControls />
 				<EffectComposer>
 					<SSAO
@@ -145,7 +160,13 @@ const View: FC<ViewProps> = ({ value, focus, onChange, setFocus }) => {
 					<DepthOfField focusDistance={0.001} focalLength={6} bokehScale={2} />
 				</EffectComposer>
 			</Canvas>
-			<Hotkeys value={value} onChange={onChange} />
+			<Hotkeys
+				value={value}
+				onChange={onChange}
+				onExport={() => {
+					exportOBJ();
+				}}
+			/>
 		</>
 	);
 };

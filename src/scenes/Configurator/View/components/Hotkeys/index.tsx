@@ -1,4 +1,4 @@
-import { Kbd, KbdKey } from '@nextui-org/react';
+import { Button, Kbd, KbdKey } from '@nextui-org/react';
 import { Conveyor } from '@system/conveyor';
 import { SectionTurn } from '@system/section';
 import { FC, useEffect } from 'react';
@@ -6,6 +6,7 @@ import { FC, useEffect } from 'react';
 export interface HotkeysProps {
 	value: Conveyor;
 	onChange: (value: Conveyor) => void;
+	onExport: () => void;
 }
 
 const KeyRender: FC<{
@@ -28,7 +29,7 @@ const KeyRender: FC<{
 	);
 };
 
-const Hotkeys: FC<HotkeysProps> = ({ value, onChange }) => {
+const Hotkeys: FC<HotkeysProps> = ({ value, onChange, onExport }) => {
 	useEffect(() => {
 		const listener = (event: KeyboardEvent) => {
 			const handlers: Record<string, () => void> = {
@@ -145,15 +146,44 @@ const Hotkeys: FC<HotkeysProps> = ({ value, onChange }) => {
 	}, [onChange, value]);
 
 	return (
-		<div className="absolute bottom-0 left-0 p-4 flex flex-col gap-2">
-			<KeyRender kbdKey="up">Add straight section</KeyRender>
-			<KeyRender kbdKey="down">Remove last section</KeyRender>
-			<KeyRender kbdKey="left">Add left turn</KeyRender>
-			<KeyRender kbdKey="right">Add right turn</KeyRender>
-			<KeyRender character="d">Add drive section</KeyRender>
-			{/* <KeyRender character="c">Add corkscrew section</KeyRender> */}
-			{/* <KeyRender character="i">Add incline section</KeyRender> */}
-			<KeyRender kbdKey="delete">Clear conveyor</KeyRender>
+		<div className="absolute bottom-0 left-0 p-4 min-w-64">
+			<div className="flex flex-col gap-2 p-4">
+				<KeyRender kbdKey="up">Add straight section</KeyRender>
+				<KeyRender kbdKey="down">Remove last section</KeyRender>
+				<KeyRender kbdKey="left">Add left turn</KeyRender>
+				<KeyRender kbdKey="right">Add right turn</KeyRender>
+				<KeyRender character="d">Add drive section</KeyRender>
+				{/* <KeyRender character="c">Add corkscrew section</KeyRender> */}
+				{/* <KeyRender character="i">Add incline section</KeyRender> */}
+				<KeyRender kbdKey="delete">Clear conveyor</KeyRender>
+			</div>
+			<div className="mt-6 mb-2 border-b border-b-white" />
+			<div className="p-4">
+				<Button
+					fullWidth
+					variant="light"
+					className="text-white"
+					onPress={onExport}
+					startContent={
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+							strokeWidth={1.5}
+							stroke="currentColor"
+							className="size-6"
+						>
+							<path
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"
+							/>
+						</svg>
+					}
+				>
+					Download CAD
+				</Button>
+			</div>
 		</div>
 	);
 };
